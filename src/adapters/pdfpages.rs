@@ -1,12 +1,10 @@
 use super::*;
 use crate::adapters::spawning::map_exe_error;
-
 use crate::preproc::rga_preproc;
 use lazy_static::lazy_static;
-
+use log::*;
 use std::fs::File;
 use std::io::BufReader;
-
 use std::path::PathBuf;
 use std::process::Command;
 
@@ -16,7 +14,7 @@ lazy_static! {
 	static ref METADATA: AdapterMeta = AdapterMeta {
 		name: "pdfpages".to_owned(),
 		version: 1,
-		description: "Converts a pdf to it's individual pages as png files. Only useful in combination with tesseract".to_owned(),
+		description: "Converts a pdf to its individual pages as png files. Only useful in combination with tesseract".to_owned(),
 		recurses: true,
 		fast_matchers: EXTENSIONS
 			.iter()
@@ -62,7 +60,7 @@ impl FileAdapter for PdfPagesAdapter {
 		let exe_name = "gm";
 		let out_dir = tempfile::Builder::new().prefix("pdfpages-").tempdir()?;
 		let out_fname = out_dir.path().join("out%04d.png");
-		eprintln!("writing to temp dir: {}", out_fname.display());
+		debug!("writing to temp dir: {}", out_fname.display());
 		let mut cmd = Command::new(exe_name);
 		cmd.arg("convert")
 			.arg("-density")
@@ -72,7 +70,7 @@ impl FileAdapter for PdfPagesAdapter {
 			.arg(out_fname);
 
 		let mut cmd = cmd.spawn().map_err(|e| {
-			map_exe_error(e, exe_name, "Make sure you have graphicsmagick installed.")
+			map_exe_error(e, exe_name, "Make sure you have imagemagick installed.")
 		})?;
 		let args = config.args;
 

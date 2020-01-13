@@ -1,6 +1,7 @@
 use super::*;
 use failure::*;
 use lazy_static::lazy_static;
+use log::*;
 use rusqlite::types::ValueRef;
 use rusqlite::*;
 use std::convert::TryInto;
@@ -45,7 +46,7 @@ fn format_blob(b: ValueRef) -> String {
         Null => "NULL".to_owned(),
         Integer(i) => format!("{}", i),
         Real(i) => format!("{}", i),
-        Text(i) => format!("'{}'", i.replace("'", "''")),
+        Text(i) => format!("'{}'", String::from_utf8_lossy(i).replace("'", "''")),
         Blob(b) => format!(
             "[blob {}B]",
             size_format::SizeFormatterSI::new(
@@ -79,7 +80,7 @@ impl FileAdapter for SqliteAdapter {
             .query_map(NO_PARAMS, |r| r.get::<_, String>(0))?
             .filter_map(|e| e.ok())
             .collect();
-        eprintln!("db has {} tables", tables.len());
+        debug!("db has {} tables", tables.len());
         for table in tables {
             // can't use query param at that position
             let mut sel = conn.prepare(&format!(
